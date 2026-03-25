@@ -1,0 +1,164 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resources-service
+  namespace: k8s-program
+  labels:
+    app: resources-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: resources-service
+  template:
+    metadata:
+      labels:
+        app: resources-service
+    spec:
+      containers:
+        - name: resources-service
+          image: localhost/resources-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: create
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD #TODO: secret
+              value: postgres
+            - name: RESOURCES_DB_URL
+              value: "resources-db-service"
+            - name: RESOURCES_DB_PORT
+              value: "5432"
+            - name: SONGS_MS_URL
+              value: "songs-service-service"
+            - name: SONGS_MS_PORT
+              value: "8081"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs-service
+  namespace: k8s-program
+  labels:
+    app: songs-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: songs-service
+  template:
+    metadata:
+      labels:
+        app: songs-service
+    spec:
+      containers:
+        - name: songs-service
+          image: localhost/songs-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: create
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD #TODO: secret
+              value: postgres
+            - name: SONGS_DB_URL
+              value: "songs-db-service"
+            - name: SONGS_DB_PORT
+              value: "5432"
+
+      
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: songs-db
+  namespace: k8s-program
+  labels:
+    app: songs-db
+spec:
+  replicas: 1
+  serviceName: "songs-db-service"
+  selector:
+    matchLabels:
+      app: songs-db
+  template:
+    metadata:
+      labels:
+        app: songs-db
+    spec:
+      containers:
+        - name: songs-db
+          image: docker.io/postgres:17.6-alpine3.22
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          volumeMounts:
+            - name: local-storage
+              mountPath: "/var/lib/postgresql/data"
+              readOnly: false
+  volumeClaimTemplates:
+    - metadata:
+        name: local-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+#        storageClassName: hostpath
+        resources:
+          requests:
+            storage: 200Mi
+---
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: resources-db
+  namespace: k8s-program
+  labels:
+    app: resources-db
+spec:
+  replicas: 1
+  serviceName: "resources-db-service"
+  selector:
+    matchLabels:
+      app: resources-db
+  template:
+    metadata:
+      labels:
+        app: resources-db
+    spec:
+      containers:
+        - name: resources-db
+          image: docker.io/postgres:17.6-alpine3.22
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          volumeMounts:
+            - name: local-storage
+              mountPath: "/var/lib/postgresql/data"
+              readOnly: false
+  volumeClaimTemplates:
+    - metadata:
+        name: local-storage
+      spec:
+          accessModes: [ "ReadWriteOnce" ]
+#         storageClassName: hostpath
+          resources:
+            requests:
+                storage: 200Mi
+--- 
+

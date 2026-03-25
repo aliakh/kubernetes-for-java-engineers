@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs-ms
+  namespace: k8s-program
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: songs-ms
+  template:
+    metadata:
+      labels:
+        app: songs-ms
+    spec:
+      containers:
+        - name: songs-ms
+          image: songs-ms:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SONGS_DB_URL
+              value: songs-db-0.songs-db.k8s-program.svc.cluster.local
+            - name: SONGS_DB_PORT
+              value: "5432"
+            - name: EUREKA_URI
+              value: eureka-server
+            - name: ENABLE_EUREKA_CLIENT
+              value: "true"
+          securityContext:
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+

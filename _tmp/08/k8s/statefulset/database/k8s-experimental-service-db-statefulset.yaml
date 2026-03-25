@@ -1,0 +1,166 @@
+apiVersion: v1
+# Headless service required for interaction between db-pods within a stateful-set
+kind: Service
+metadata:
+  name: experimental-songs-service-db-headless-service
+  namespace: database-statefulset-ns
+spec:
+  selector:
+    app: song-postgres-db-statefulset
+  ports:
+    - port: 5432
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: experimental-songs-service-db-statefulset
+  namespace: database-statefulset-ns
+  labels:
+    app: song-postgres-db-statefulset
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: song-postgres-db-statefulset
+  serviceName: experimental-songs-service-db-headless-service
+  template:
+    metadata:
+      labels:
+        app: song-postgres-db-statefulset
+    spec:
+      containers:
+      - name: song-postgres-db-statefulset
+        image: postgres:18.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-db-statefulset-secret
+              key: postgres-root-username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-db-statefulset-secret
+              key: postgres-root-password
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: experimental-service-db-statefulset-config
+              key: database_name
+        volumeMounts:
+        # Starting from the PostgreSql v.18 db-files location is /var/lib/postgresql/18/docker.
+        # Later versions will replace 18 with their respective major version
+        # (e.g., /var/lib/postgresql/19/docker for PostgreSQL 19.x)
+        # For more detail refer to https://hub.docker.com/_/postgres#pgdata
+          - name: song-postgres-storage
+            mountPath: /var/lib/postgresql/18/docker
+  volumeClaimTemplates:
+    - metadata:
+        name: song-postgres-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "hostpath"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: song-postgres-db-statefulset-service
+  namespace: database-statefulset-ns
+spec:
+  selector:
+    app: song-postgres-db-statefulset
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: v1
+# Headless service required for interaction between db-pods within a stateful-set
+kind: Service
+metadata:
+  name: experimental-resource-service-db-headless-service
+  namespace: database-statefulset-ns
+spec:
+  selector:
+    app: resource-postgres-db-statefulset
+  ports:
+    - port: 5432
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: experimental-resources-service-db-statefulset
+  namespace: database-statefulset-ns
+  labels:
+    app: resource-postgres-db-statefulset
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resource-postgres-db-statefulset
+  template:
+    metadata:
+      labels:
+        app: resource-postgres-db-statefulset
+    spec:
+      containers:
+        - name: resource-postgres-db-statefulset
+          image: postgres:18.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-db-statefulset-secret
+                  key: postgres-root-username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-db-statefulset-secret
+                  key: postgres-root-password
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: experimental-service-db-statefulset-config
+                  key: database_name
+          volumeMounts:
+            # Starting from the PostgreSql v.18 db-files location is /var/lib/postgresql/18/docker.
+            # Later versions will replace 18 with their respective major version
+            # (e.g., /var/lib/postgresql/19/docker for PostgreSQL 19.x)
+            # For more detail refer to https://hub.docker.com/_/postgres#pgdata
+            - name: resource-postgres-storage
+              mountPath: /var/lib/postgresql/18/docker
+  volumeClaimTemplates:
+    - metadata:
+        name: resource-postgres-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "hostpath"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resource-postgres-db-statefulset-service
+  namespace: database-statefulset-ns
+spec:
+  selector:
+    app: resource-postgres-db-statefulset
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP

@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resources-deployment
+  namespace: k8s-program
+spec:
+  selector:
+    matchLabels:
+      app: resources-service
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: resources-service
+    spec:
+      containers:
+        - name: resources-container
+          image: yeldosnarbay/resources-service:1.0.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESOURCES_MS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: RESOURCES_MS_PORT
+                  name: resources-config
+            - name: RESOURCES_DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-config
+                  key: RESOURCES_DB_URL
+            - name: RESOURCES_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: RESOURCES_DB_PORT
+                  name: resources-config
+            - name: RESOURCES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-config
+                  key: RESOURCES_DB
+            - name: RESOURCES_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_USER
+                  name: resources-credentials
+            - name: RESOURCES_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: resources-credentials
+                  key: POSTGRES_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs-deployment
+  namespace: k8s-program
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: songs-service
+  template:
+    metadata:
+      labels:
+        app: songs-service
+    spec:
+      containers:
+        - name: songs-container
+          image: yeldosnarbay/songs-service:1.0.0
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SONGS_MS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: songs-config
+                  key: SONGS_MS_PORT
+            - name: SONGS_DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: songs-config
+                  key: SONGS_DB_URL
+            - name: SONGS_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: songs-config
+                  key: SONGS_DB_PORT
+            - name: SONGS_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: songs-config
+                  key: SONGS_DB
+            - name: SONGS_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: songs-credentials
+                  key: POSTGRES_USER
+            - name: SONGS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: songs-credentials
+                  key: POSTGRES_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 15

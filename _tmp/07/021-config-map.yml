@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resources-config
+  namespace: k8s-program
+data:
+  RESOURCES_MS_PORT: "8080"
+  RESOURCES_DB_URL: "resources-db-service.k8s-program.svc.cluster.local"
+  RESOURCES_DB_PORT: "5432"
+  RESOURCES_DB: "resources_db"
+  init.sql: |
+   CREATE TABLE IF NOT EXISTS resources (
+       id SERIAL PRIMARY KEY,
+       blob bytes
+   );
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: songs-config
+  namespace: k8s-program
+data:
+  SONGS_MS_PORT: "8081"
+  SONGS_DB_URL: "songs-db-service.k8s-program.svc.cluster.local"
+  SONGS_DB_PORT: "5432"
+  SONGS_DB: "songs_db"
+  init.sql: |
+   CREATE TABLE IF NOT EXISTS songs (
+       id SERIAL PRIMARY KEY,
+       name text,
+       artist text,
+       album text,
+       length text,
+       resource_id int,
+       year text
+   );

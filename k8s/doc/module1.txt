@@ -1,0 +1,91 @@
+# Sub-task 1: Enable k8s
+
+# Install Rancher Desktop, then verify kubectl is available
+kubectl version
+
+
+
+# Sub-task 2: Deploy containers in k8s
+
+# Build the microservices
+./gradlew :resources-service:clean :resources-service:build -x test
+./gradlew :songs-service:clean :songs-service:build -x test
+
+# Build Docker images for Rancher Desktop using containerd/nerdctl
+nerdctl -n k8s.io build -t resources-service:1.0 resources-service
+nerdctl -n k8s.io build -t songs-service:1.0 songs-service
+
+# Deploy the Kubernetes manifests
+kubectl apply -f k8s/
+
+# Get all workload objects in the namespace
+kubectl get all -n k8s-program
+# Why does `kubectl get all -n k8s-program` show Pods and ReplicaSets?
+# A Deployment doesn’t create Pods directly; it creates a ReplicaSet, and the ReplicaSet creates Pods.
+# Similarly, a StatefulSet manages its own Pods and dynamically creates PVCs from its volumeClaimTemplates.
+
+kubectl get pods -n k8s-program
+kubectl get svc -n k8s-program
+kubectl get deploy -n k8s-program
+kubectl get rs -n k8s-program
+kubectl get sts -n k8s-program
+
+# Check that the microservices work
+curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
+kubectl logs -l app=resources-ms-dpl --tail=1000 -n k8s-program
+kubectl logs -l app=songs-ms-dpl --tail=1000 -n k8s-program
+curl.exe -sL "http://localhost:30080/resources/1" -o resource1.mp3
+curl.exe -sL "http://localhost:30081/songs/1"
+curl.exe -sL -X DELETE "http://localhost:30080/resources?ids=1"
+curl.exe -sL "http://localhost:30080/resources/1"
+curl.exe -sL "http://localhost:30081/songs/1"
+
+# Redeploy after image rebuilds
+kubectl rollout restart deploy/songs-ms-dpl -n k8s-program
+kubectl rollout restart deploy/resources-ms-dpl -n k8s-program
+kubectl get pods -n k8s-program
+
+# Stop the workloads
+kubectl delete all --all -n k8s-program
+
+
+
+# Sub-task 3: Persistent volumes
+
+# Inspect PersistentVolumeClaim and PersistentVolume (both should show STATUS=Bound and PersistentVolumeClaim should show the correct PersistentVolume in the "VOLUME" column)
+kubectl get pvc songs-pvc -o wide -n k8s-program
+kubectl get pv songs-pv
+
+# Write a file to the mounted volume inside the container, then list the directory
+kubectl exec deploy/songs-ms-dpl -c songs-service -n k8s-program -- sh -lc 'echo hello > /data/test.txt && ls -l /data'
+
+# Force a redeploy (scale to zero and back to one) and wait for readiness
+kubectl scale deploy/songs-ms-dpl --replicas=0 -n k8s-program
+kubectl get pods -n k8s-program
+kubectl scale deploy/songs-ms-dpl --replicas=1 -n k8s-program
+kubectl get pods -n k8s-program
+
+# Read the file back (new Pod, same PersistentVolumeClaim)
+kubectl exec deploy/songs-ms-dpl -c songs-service -n k8s-program -- sh -lc 'cat /data/test.txt'
+
+
+
+# Sub-task 4: Stateful Sets
+
+# Get StorageClasses and see which one is default
+kubectl get sc
+
+# Show details of the hostpath StorageClass to confirm it is default and its provisioner
+kubectl describe sc hostpath
+
+# Get PersistentVolumeClaims created by the StatefulSets (STATUS should be Bound; StorageClass should be hostpath)
+kubectl get pvc -n k8s-program
+
+# Get PersistentVolumes (should show matching "CLAIM" pointing to your PersistentVolumeClaims and STATUS=Bound)
+kubectl get pv
+
+# Get StatefulSets (should show their volumeClaimTemplates and storageClassName)
+kubectl get sts -n k8s-program
+
+# Get Services (DB services should be headless with CLUSTER-IP=none and be internal-only)
+kubectl get svc -n k8s-program

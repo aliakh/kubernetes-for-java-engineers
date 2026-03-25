@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: songs-db-service
+  namespace: k8s-program
+spec:
+  type: ClusterIP
+  selector:
+    app: songs-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: songs-db
+  namespace: k8s-program
+spec:
+  selector:
+    matchLabels:
+      app: songs-db
+  serviceName: songs-db-service
+  template:
+    metadata:
+      labels:
+        app: songs-db
+    spec:
+      containers:
+        - name: songs-pg-container
+          image: postgres:17
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: songs-config
+                  key: SONGS_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: songs-credentials
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: songs-credentials
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: songs-config
+                  key: SONGS_DB_PORT
+          ports:
+            - containerPort: 5432
+              name: songs-db
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: songs-db-storage
+            - mountPath: /docker-entrypoint-initdb.d
+              name: init-sql
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          startupProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: init-sql
+          configMap:
+            name: songs-config
+            items:
+              - key: init.sql
+                path: init.sql
+  volumeClaimTemplates:
+    - metadata:
+        name: songs-db-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
