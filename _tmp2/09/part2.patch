@@ -1,0 +1,488 @@
+Index: k8s/app-config-map.yaml
+===================================================================
+diff --git a/k8s/app-config-map.yaml b/k8s/app-config-map.yaml
+new file mode 100644
+--- /dev/null	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
++++ b/k8s/app-config-map.yaml	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -0,0 +1,29 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: app-config
++  namespace: microservices
++data:
++  resources_db_url: "resources-db-service"
++  resources_db_port: "5432"
++  songs_db_url: "songs-db-service"
++
++  resources_init.sql: |
++    create table resources (
++        id serial not null,
++        blob bytea,
++        primary key (id)
++    );
++  songs_init.sql: |
++    create sequence songs_seq start with 1 increment by 50;
++    create table songs (
++        id integer not null,
++        resource_id integer not null unique,
++        album varchar(255),
++        artist varchar(255),
++        length varchar(255),
++        name varchar(255),
++        year varchar(255),
++        genre varchar(255),
++        primary key (id)
++    );
+Index: k8s/db-config-map.yaml
+===================================================================
+diff --git a/k8s/db-config-map.yaml b/k8s/db-config-map.yaml
+new file mode 100644
+--- /dev/null	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
++++ b/k8s/db-config-map.yaml	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -0,0 +1,7 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: db-config
++  namespace: microservices
++data:
++  db: "postgres"
+Index: k8s/db-secret.yaml
+===================================================================
+diff --git a/k8s/db-secret.yaml b/k8s/db-secret.yaml
+new file mode 100644
+--- /dev/null	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
++++ b/k8s/db-secret.yaml	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -0,0 +1,9 @@
++apiVersion: v1
++kind: Secret
++metadata:
++  name: db-creds
++  namespace: microservices
++type: Opaque
++stringData:
++  postgres_user: postgres
++  postgres_pass: postgres
+Index: k8s/resources-db.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/k8s/resources-db.yaml b/k8s/resources-db.yaml
+--- a/k8s/resources-db.yaml	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/k8s/resources-db.yaml	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -18,19 +18,65 @@
+         - name: resources-db
+           image: postgres:13.20-alpine3.21
+           imagePullPolicy: IfNotPresent
+-          volumeMounts:
+-            - mountPath: /data
+-              name: data
+           env:
+             - name: POSTGRES_USER
+-              value: "postgres"
++              valueFrom:
++                secretKeyRef:
++                  name: db-creds
++                  key: postgres_user
+             - name: POSTGRES_PASSWORD
+-              value: "postgres"
++              valueFrom:
++                secretKeyRef:
++                  name: db-creds
++                  key: postgres_pass
+             - name: POSTGRES_DB
+-              value: "postgres"
++              valueFrom:
++                configMapKeyRef:
++                  name: db-config
++                  key: db
++          volumeMounts:
++            - mountPath: /data
++              name: data
++            - name: db-init
++              mountPath: /docker-entrypoint-initdb.d
+           ports:
+             - containerPort: 5432
+               protocol: TCP
++          startupProbe:
++            exec:
++              command:
++                - sh
++                - -c
++                - pg_isready -U postgres -d postgres
++            failureThreshold: 30
++            periodSeconds: 10
++          livenessProbe:
++              exec:
++                command:
++                  - sh
++                  - -c
++                  - pg_isready -U postgres -d postgres
++              initialDelaySeconds: 30
++              periodSeconds: 10
++              timeoutSeconds: 5
++              failureThreshold: 3
++          readinessProbe:
++              exec:
++                command:
++                  - sh
++                  - -c
++                  - pg_isready -U postgres -d postgres
++              initialDelaySeconds: 10
++              periodSeconds: 5
++              timeoutSeconds: 5
++              failureThreshold: 3
++      volumes:
++        - name: db-init
++          configMap:
++            name: app-config
++            items:
++              - key: resources_init.sql
++                path: resources_init.sql
+   volumeClaimTemplates:
+     - metadata:
+         name: data
+Index: k8s/resources-deployment.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/k8s/resources-deployment.yaml b/k8s/resources-deployment.yaml
+--- a/k8s/resources-deployment.yaml	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/k8s/resources-deployment.yaml	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -29,4 +29,26 @@
+           ports:
+             - containerPort: 8080
+               protocol: TCP
++          startupProbe:
++            httpGet:
++              port: 8080
++              path: /actuator/health
++            failureThreshold: 30
++            timeoutSeconds: 5
++          livenessProbe:
++            httpGet:
++              port: 8080
++              path: /actuator/health/liveness
++            initialDelaySeconds: 15
++            periodSeconds: 10
++            failureThreshold: 3
++            timeoutSeconds: 10
++          readinessProbe:
++            httpGet:
++              port: 8080
++              path: /actuator/health/readiness
++            initialDelaySeconds: 10
++            periodSeconds: 5
++            timeoutSeconds: 2
++            failureThreshold: 10
+       restartPolicy: Always
+Index: k8s/songs-db.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/k8s/songs-db.yaml b/k8s/songs-db.yaml
+--- a/k8s/songs-db.yaml	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/k8s/songs-db.yaml	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -18,19 +18,65 @@
+         - name: songs-db
+           image: postgres:13.20-alpine3.21
+           imagePullPolicy: IfNotPresent
+-          volumeMounts:
+-            - mountPath: /data
+-              name: data
+           env:
+             - name: POSTGRES_USER
+-              value: "postgres"
++              valueFrom:
++                secretKeyRef:
++                  name: db-creds
++                  key: postgres_user
+             - name: POSTGRES_PASSWORD
+-              value: "postgres"
++              valueFrom:
++                secretKeyRef:
++                  name: db-creds
++                  key: postgres_pass
+             - name: POSTGRES_DB
+-              value: "postgres"
++              valueFrom:
++                configMapKeyRef:
++                  name: db-config
++                  key: db
++          volumeMounts:
++            - mountPath: /data
++              name: data
++            - name: db-init
++              mountPath: /docker-entrypoint-initdb.d
+           ports:
+             - containerPort: 5432
+               protocol: TCP
++          startupProbe:
++            exec:
++              command:
++                - sh
++                - -c
++                - pg_isready -U postgres -d postgres
++            failureThreshold: 30
++            periodSeconds: 10
++          livenessProbe:
++            exec:
++              command:
++                - sh
++                - -c
++                - pg_isready -U postgres -d postgres
++            initialDelaySeconds: 30
++            periodSeconds: 10
++            timeoutSeconds: 5
++            failureThreshold: 3
++          readinessProbe:
++            exec:
++              command:
++                - sh
++                - -c
++                - pg_isready -U postgres -d postgres
++            initialDelaySeconds: 10
++            periodSeconds: 5
++            timeoutSeconds: 5
++            failureThreshold: 3
++      volumes:
++        - name: db-init
++          configMap:
++            name: app-config
++            items:
++              - key: songs_init.sql
++                path: songs_init.sql
+   volumeClaimTemplates:
+     - metadata:
+         name: data
+Index: k8s/songs-deployment.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/k8s/songs-deployment.yaml b/k8s/songs-deployment.yaml
+--- a/k8s/songs-deployment.yaml	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/k8s/songs-deployment.yaml	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -6,6 +6,10 @@
+     app: songs
+   namespace: microservices
+ spec:
++  strategy:
++    rollingUpdate:
++      maxSurge: 25%
++      maxUnavailable: 25%
+   replicas: 2
+   selector:
+     matchLabels:
+@@ -19,7 +23,7 @@
+     spec:
+       containers:
+         - name: songs
+-          image: songs-image:1.0.0
++          image: songs-image:1.0.1
+           imagePullPolicy: IfNotPresent
+           env:
+             - name: SONGS_DB_URL
+@@ -30,6 +34,28 @@
+           volumeMounts:
+             - mountPath: /data
+               name: data
++          startupProbe:
++            httpGet:
++              port: 8081
++              path: /actuator/health
++            failureThreshold: 30
++            timeoutSeconds: 10
++          livenessProbe:
++            httpGet:
++              port: 8081
++              path: /actuator/health/liveness
++            initialDelaySeconds: 15
++            periodSeconds: 10
++            failureThreshold: 3
++            timeoutSeconds: 10
++          readinessProbe:
++            httpGet:
++              port: 8081
++              path: /actuator/health/readiness
++            initialDelaySeconds: 10
++            periodSeconds: 5
++            timeoutSeconds: 2
++            failureThreshold: 10
+       volumes:
+         - name: data
+           persistentVolumeClaim:
+Index: resources-service/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/resources-service/src/main/resources/application.properties b/resources-service/src/main/resources/application.properties
+--- a/resources-service/src/main/resources/application.properties	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/resources-service/src/main/resources/application.properties	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -27,6 +27,12 @@
+ # Hibernate properties
+ spring.jpa.database-platform = org.hibernate.dialect.PostgreSQLDialect
+ spring.jpa.show-sql = true
+-spring.jpa.hibernate.ddl-auto = create-drop
++spring.jpa.hibernate.ddl-auto = validate
+ spring.jpa.hibernate.naming.implicit-strategy = org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
+-spring.jpa.properties.hibernate.format_sql=true
+\ No newline at end of file
++spring.jpa.properties.hibernate.format_sql=true
++
++management.endpoint.health.probes.enabled=true
++management.health.livenessState.enabled=true
++management.health.readinessState.enabled=true
++management.endpoint.health.show-details=always
++management.endpoints.web.exposure.include=health,info,startup
+Index: resources-service/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/resources-service/build.gradle b/resources-service/build.gradle
+--- a/resources-service/build.gradle	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/resources-service/build.gradle	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -29,6 +29,7 @@
+     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+     implementation 'org.springframework.boot:spring-boot-starter-validation'
+     implementation 'org.springframework.boot:spring-boot-starter-web'
++    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+     implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+Index: songs-service/src/main/java/com/ms/intro/domain/SongData.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/songs-service/src/main/java/com/ms/intro/domain/SongData.java b/songs-service/src/main/java/com/ms/intro/domain/SongData.java
+--- a/songs-service/src/main/java/com/ms/intro/domain/SongData.java	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/songs-service/src/main/java/com/ms/intro/domain/SongData.java	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -1,14 +1,11 @@
+ package com.ms.intro.domain;
+ 
+-import com.ms.intro.dto.SongDto;
+ import jakarta.persistence.*;
+ import lombok.AllArgsConstructor;
+ import lombok.Data;
+ import lombok.NoArgsConstructor;
+ import lombok.ToString;
+ 
+-import java.util.Objects;
+-
+ @Entity
+ @Table(name = "songs")
+ @Data
+@@ -38,4 +35,7 @@
+ 
+     @Column(nullable = true)
+     String year;
++
++    @Column(nullable = true)
++    String genre;
+ }
+Index: songs-service/src/main/java/com/ms/intro/dto/SongDto.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/songs-service/src/main/java/com/ms/intro/dto/SongDto.java b/songs-service/src/main/java/com/ms/intro/dto/SongDto.java
+--- a/songs-service/src/main/java/com/ms/intro/dto/SongDto.java	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/songs-service/src/main/java/com/ms/intro/dto/SongDto.java	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -1,7 +1,6 @@
+ package com.ms.intro.dto;
+ 
+ import com.fasterxml.jackson.annotation.JsonInclude;
+-import jakarta.persistence.Column;
+ import jakarta.validation.constraints.NotNull;
+ import lombok.AllArgsConstructor;
+ import lombok.Data;
+@@ -26,4 +25,6 @@
+     Integer resourceId;
+ 
+     String year;
++
++    String genre;
+ }
+Index: songs-service/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/songs-service/src/main/resources/application.properties b/songs-service/src/main/resources/application.properties
+--- a/songs-service/src/main/resources/application.properties	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/songs-service/src/main/resources/application.properties	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -18,6 +18,12 @@
+ # Hibernate properties
+ spring.jpa.database-platform = org.hibernate.dialect.PostgreSQLDialect
+ spring.jpa.show-sql = true
+-spring.jpa.hibernate.ddl-auto = create-drop
++spring.jpa.hibernate.ddl-auto = validate
+ spring.jpa.hibernate.naming.implicit-strategy = org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
+-spring.jpa.properties.hibernate.format_sql=true
+\ No newline at end of file
++spring.jpa.properties.hibernate.format_sql=true
++
++management.endpoint.health.probes.enabled=true
++management.health.livenessState.enabled=true
++management.health.readinessState.enabled=true
++management.endpoint.health.show-details=always
++management.endpoints.web.exposure.include=health,info,startup
+Index: songs-service/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/songs-service/build.gradle b/songs-service/build.gradle
+--- a/songs-service/build.gradle	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/songs-service/build.gradle	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -29,6 +29,7 @@
+     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+     implementation 'org.springframework.boot:spring-boot-starter-validation'
+     implementation 'org.springframework.boot:spring-boot-starter-web'
++    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+ 
+     compileOnly 'org.projectlombok:lombok'
+Index: docker-compose.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docker-compose.yml b/docker-compose.yml
+--- a/docker-compose.yml	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/docker-compose.yml	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -16,7 +16,7 @@
+       - eureka-server
+ 
+   songs-ms:
+-    image: songs-image:${SERVICE_TAG:-latest}
++    image: songs-image:1.0.1
+     build:
+       context: .
+       dockerfile: songs-service/Dockerfile
+Index: Makefile
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Makefile b/Makefile
+--- a/Makefile	(revision 42b552aa9976a7e69abc514e362aef61835be5f9)
++++ b/Makefile	(revision 863654982b4e2a93384ee37745aa8a5044560a34)
+@@ -16,6 +16,9 @@
+ 	kubectl config set-context --current --namespace=microservices
+ 
+ kube-stop:
+-	kubectl delete -f k8s/
++	$(MAKE) kube-del
+ 	echo "Y" | docker system prune -a
+ 	minikube stop
++
++kube-del:
++	kubectl delete -f k8s/
