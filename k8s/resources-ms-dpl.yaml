@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resources-ms-dpl
+  namespace: k8s-program
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: resources-ms-dpl
+  template:
+    metadata:
+      labels:
+        app: resources-ms-dpl
+    spec:
+      containers:
+        - name: resources-service
+          image: resources-service:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - { name: RESOURCES_DB_URL,  value: "resources-db-svc" }
+            - { name: RESOURCES_DB_PORT, value: "5432" }
+            - { name: SONGS_MS_URL,      value: "songs-ms-svc" }
+            - { name: SONGS_MS_PORT,     value: "8081" }
