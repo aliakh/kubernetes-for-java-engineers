@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs-ms-dpl
+  namespace: k8s-program
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: songs-ms-dpl
+  template:
+    metadata:
+      labels:
+        app: songs-ms-dpl
+    spec:
+      containers:
+        - name: songs-service
+          image: songs-service:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:
+            - { name: SONGS_DB_URL,  value: "songs-db-svc" }
+            - { name: SONGS_DB_PORT, value: "5432" }
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: songs-pvc
