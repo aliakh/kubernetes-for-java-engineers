@@ -4,4 +4,4 @@ metadata:
   name: db-config-cm
   namespace: k8s-program
 data:
-  postgres_db: "postgres"
+  POSTGRES_DB: "postgres"

@@ -35,7 +35,7 @@ spec:
           readinessProbe:
             exec:
               command: ["sh", "-c", "pg_isready -U postgres -d postgres"]
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 5
             failureThreshold: 3
@@ -44,17 +44,17 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: db-config-scr
-                  key: postgres_user
+                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: db-config-scr
-                  key: postgres_password
+                  key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
                   name: db-config-cm
-                  key: postgres_db
+                  key: POSTGRES_DB
           volumeMounts:
             - name: songs-data
               mountPath: /var/lib/postgresql/data

@@ -4,6 +4,6 @@ metadata:
   name: db-config-scr
   namespace: k8s-program
 type: Opaque
-stringData:
-  postgres_user: postgres
-  postgres_password: postgres
+data:
+  POSTGRES_USER: cG9zdGdyZXM=
+  POSTGRES_PASSWORD: cG9zdGdyZXM=
