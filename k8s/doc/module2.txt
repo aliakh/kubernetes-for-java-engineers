@@ -1,1 +1,7 @@
 Get-Content *.yaml | Set-Content merged.txt
+
+kubectl rollout history deployment/post-srv -n=demo-k8s
+kubectl apply -f manifests/rolling-update/post-srv-deployment.yaml
+kubectl rollout history deployment/post-srv -n=demo-k8s
+kubectl rollout undo deployment/post-srv -n demo-k8s
+kubectl rollout history deployment/post-srv -n=demo-k8s
