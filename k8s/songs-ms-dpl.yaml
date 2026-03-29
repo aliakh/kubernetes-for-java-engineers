@@ -46,8 +46,16 @@ spec:
             timeoutSeconds: 2
             failureThreshold: 10
           env:
-            - { name: SONGS_DB_URL,  value: "songs-db-svc" }
-            - { name: SONGS_DB_PORT, value: "5432" }
+            - name: SONGS_DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: songs-ms-config-cm
+                  key: songs_db_url
+            - name: SONGS_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: songs-ms-config-cm
+                  key: songs_db_port
           volumeMounts:
             - name: data
               mountPath: /data

@@ -42,7 +42,23 @@ spec:
             timeoutSeconds: 2
             failureThreshold: 10
           env:
-            - { name: RESOURCES_DB_URL,  value: "resources-db-svc" }
-            - { name: RESOURCES_DB_PORT, value: "5432" }
-            - { name: SONGS_MS_URL,      value: "songs-ms-svc" }
-            - { name: SONGS_MS_PORT,     value: "8081" }
+            - name: RESOURCES_DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-ms-config-cm
+                  key: resources_db_url
+            - name: RESOURCES_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-ms-config-cm
+                  key: resources_db_port
+            - name: SONGS_MS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-ms-config-cm
+                  key: songs_ms_url
+            - name: SONGS_MS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-ms-config-cm
+                  key: songs_ms_port
