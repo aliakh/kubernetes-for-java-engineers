@@ -18,3 +18,21 @@ kubectl apply -f ...
 kubectl rollout undo ...
 ✔ Verify history again
 Everything matches Kubernetes recommended procedure.
+
+
+
+# Build the microservices
+./gradlew :resources-service:clean :resources-service:build -x test
+./gradlew :songs-service:clean :songs-service:build -x test
+
+# Build Docker images for Rancher Desktop using containerd/nerdctl
+nerdctl -n k8s.io build -t resources-service:1.0 resources-service
+nerdctl -n k8s.io build -t songs-service:1.0 songs-service
+
+# Deploy the Kubernetes manifests
+kubectl apply -f k8s/
+
+# Get all workload objects in the namespace
+kubectl get all -n k8s-program
+
+kubectl delete all --all -n k8s-program
