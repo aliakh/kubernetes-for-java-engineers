@@ -51,7 +51,7 @@ spec:
       volumes:
         - name: db-init
           configMap:
-            name: app-config
+            name: ms-config
             items:
               - key: songs_init.sql
                 path: songs_init.sql

@@ -51,7 +51,7 @@ spec:
       volumes:
         - name: db-init
           configMap:
-            name: app-config
+            name: ms-config
             items:
               - key: resources_init.sql
                 path: resources_init.sql

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app-config
+  name: ms-config
   namespace: k8s-program
 data:
   resources_db_url: "resources-db-service"
