@@ -48,13 +48,6 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 5
             failureThreshold: 3
-      volumes:
-        - name: db-init
-          configMap:
-            name: ms-config
-            items:
-              - key: resources_init.sql
-                path: resources_init.sql
           env:
             - name: POSTGRES_USER
               valueFrom:
@@ -65,17 +58,21 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: db-creds
-                  key: postgres_pass
+                  key: postgres_password
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
                   name: db-config
-                  key: db
+                  key: postgres_db
           volumeMounts:
-            - mountPath: /data
-              name: data
-            - name: db-init
+            - name: resources-data
+              mountPath: /var/lib/postgresql/data
+            - name: initdb
               mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: initdb
+          configMap:
+            name: resources-db-initdb
   volumeClaimTemplates:
     - metadata:
         name: resources-data
