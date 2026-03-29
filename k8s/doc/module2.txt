@@ -1,0 +1,1 @@
+Get-Content *.yaml | Set-Content merged.txt

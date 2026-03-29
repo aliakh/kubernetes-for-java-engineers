@@ -58,7 +58,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: db-config-scr
-                  key: postgres_passwprd
+                  key: postgres_password
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
@@ -74,8 +74,8 @@ spec:
           configMap:
             name: songs-initdb-cm
             items:
-              - key: songs_initdb_sql
-                path: songs_initdb_sql
+              - key: songs_initdb.sql
+                path: songs_initdb.sql
   volumeClaimTemplates:
     - metadata:
         name: songs-data

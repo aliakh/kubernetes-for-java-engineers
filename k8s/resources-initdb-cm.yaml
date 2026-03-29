@@ -4,7 +4,7 @@ metadata:
   name: resources-initdb-cm
   namespace: k8s-program
 data:
-  resources_initdb_sql: |
+  resources_initdb.sql: |
     drop table if exists resources cascade;
     create table resources (
       id serial not null,
