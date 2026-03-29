@@ -74,8 +74,8 @@ spec:
           configMap:
             name: songs-initdb-cm
             items:
-              - key: songs_initdb.sql
-                path: songs_initdb.sql
+              - key: songs_initdb_sql
+                path: songs_initdb_sql
   volumeClaimTemplates:
     - metadata:
         name: songs-data

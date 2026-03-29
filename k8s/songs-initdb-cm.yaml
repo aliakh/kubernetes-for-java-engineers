@@ -4,7 +4,7 @@ metadata:
   name: songs-initdb-cm
   namespace: k8s-program
 data:
-  songs_initdb.sql: |
+  songs_initdb_sql: |
     drop sequence if exists songs_seq;
     create sequence songs_seq start with 1 increment by 50;
     drop table if exists songs cascade;

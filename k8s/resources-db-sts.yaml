@@ -74,8 +74,8 @@ spec:
           configMap:
             name: resources-initdb-cm
             items:
-              - key: resources_initdb.sql
-                path: resources_initdb.sql
+              - key: resources_initdb_sql
+                path: resources_initdb_sql
   volumeClaimTemplates:
     - metadata:
         name: resources-data
