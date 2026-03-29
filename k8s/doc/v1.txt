@@ -1,0 +1,220 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: hostpath
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k8s-program
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: resources-db-sts
+  namespace: k8s-program
+spec:
+  serviceName: resources-db-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resources-db-sts
+  template:
+    metadata:
+      labels:
+        app: resources-db-sts
+    spec:
+      containers:
+        - name: resources-db
+          image: postgres:15
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - { name: POSTGRES_USER,     value: "postgres" }
+            - { name: POSTGRES_PASSWORD, value: "postgres" }
+            - { name: POSTGRES_DB,       value: "postgres" }
+          volumeMounts:
+            - name: resources-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: resources-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: hostpath
+        resources:
+          requests:
+            storage: 300Mi
+apiVersion: v1
+kind: Service
+metadata:
+  name: resources-db-svc
+  namespace: k8s-program
+spec:
+  clusterIP: None
+  selector:
+    app: resources-db-sts
+  ports:
+    - port: 5432
+      targetPort: 5432
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resources-ms-dpl
+  namespace: k8s-program
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: resources-ms-dpl
+  template:
+    metadata:
+      labels:
+        app: resources-ms-dpl
+    spec:
+      containers:
+        - name: resources-service
+          image: resources-service:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - { name: RESOURCES_DB_URL,  value: "resources-db-svc" }
+            - { name: RESOURCES_DB_PORT, value: "5432" }
+            - { name: SONGS_MS_URL,      value: "songs-ms-svc" }
+            - { name: SONGS_MS_PORT,     value: "8081" }
+apiVersion: v1
+kind: Service
+metadata:
+  name: resources-ms-svc
+  namespace: k8s-program
+spec:
+  type: NodePort
+  selector:
+    app: resources-ms-dpl
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: songs-db-sts
+  namespace: k8s-program
+spec:
+  serviceName: songs-db-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: songs-db-sts
+  template:
+    metadata:
+      labels:
+        app: songs-db-sts
+    spec:
+      containers:
+        - name: songs-db
+          image: postgres:15
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - { name: POSTGRES_USER,     value: "postgres" }
+            - { name: POSTGRES_PASSWORD, value: "postgres" }
+            - { name: POSTGRES_DB,       value: "postgres" }
+          volumeMounts:
+            - name: songs-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: songs-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: hostpath
+        resources:
+          requests:
+            storage: 300Mi
+apiVersion: v1
+kind: Service
+metadata:
+  name: songs-db-svc
+  namespace: k8s-program
+spec:
+  clusterIP: None
+  selector:
+    app: songs-db-sts
+  ports:
+    - port: 5432
+      targetPort: 5432
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs-ms-dpl
+  namespace: k8s-program
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: songs-ms-dpl
+  template:
+    metadata:
+      labels:
+        app: songs-ms-dpl
+    spec:
+      containers:
+        - name: songs-service
+          image: songs-service:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:
+            - { name: SONGS_DB_URL,  value: "songs-db-svc" }
+            - { name: SONGS_DB_PORT, value: "5432" }
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: songs-pvc
+apiVersion: v1
+kind: Service
+metadata:
+  name: songs-ms-svc
+  namespace: k8s-program
+spec:
+  type: NodePort
+  selector:
+    app: songs-ms-dpl
+  ports:
+    - port: 8081
+      targetPort: 8081
+      nodePort: 30081
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: songs-pv
+spec:
+  capacity:
+    storage: 300Mi
+  accessModes: [ "ReadWriteOnce" ]
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual
+  hostPath:
+    path: /mnt/data/songs-volume
+    type: DirectoryOrCreate
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: songs-pvc
+  namespace: k8s-program
+spec:
+  storageClassName: manual
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: 300Mi
