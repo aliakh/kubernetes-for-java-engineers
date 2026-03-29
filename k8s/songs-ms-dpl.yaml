@@ -5,6 +5,10 @@ metadata:
   namespace: k8s-program
 spec:
   replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
   selector:
     matchLabels:
       app: songs-ms-dpl
@@ -15,10 +19,32 @@ spec:
     spec:
       containers:
         - name: songs-service
-          image: songs-service:1.0
+          image: songs-service:1.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
+          startupProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health
+            failureThreshold: 30
+            timeoutSeconds: 10
+          livenessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health/liveness
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health/readiness
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 10
           env:
             - { name: SONGS_DB_URL,  value: "songs-db-svc" }
             - { name: SONGS_DB_PORT, value: "5432" }

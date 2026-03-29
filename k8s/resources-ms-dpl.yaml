@@ -19,6 +19,28 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
+          startupProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health
+            failureThreshold: 30
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 10
           env:
             - { name: RESOURCES_DB_URL,  value: "resources-db-svc" }
             - { name: RESOURCES_DB_PORT, value: "5432" }

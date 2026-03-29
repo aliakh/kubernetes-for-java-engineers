@@ -20,13 +20,62 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5432
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U postgres -d postgres
+            failureThreshold: 30
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U postgres -d postgres
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U postgres -d postgres
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: db-init
+          configMap:
+            name: app-config
+            items:
+              - key: resources_init.sql
+                path: resources_init.sql
           env:
-            - { name: POSTGRES_USER,     value: "postgres" }
-            - { name: POSTGRES_PASSWORD, value: "postgres" }
-            - { name: POSTGRES_DB,       value: "postgres" }
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-creds
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-creds
+                  key: postgres_pass
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config
+                  key: db
           volumeMounts:
-            - name: resources-data
-              mountPath: /var/lib/postgresql/data
+            - mountPath: /data
+              name: data
+            - name: db-init
+              mountPath: /docker-entrypoint-initdb.d
   volumeClaimTemplates:
     - metadata:
         name: resources-data
