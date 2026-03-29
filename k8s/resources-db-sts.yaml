@@ -72,7 +72,7 @@ spec:
       volumes:
         - name: resources-initdb
           configMap:
-            name: resources-db-initdb
+            name: resources-initdb-cm
             items:
               - key: resources_initdb.sql
                 path: resources_initdb.sql

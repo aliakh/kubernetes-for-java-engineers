@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: resources-db-initdb
+  name: resources-initdb-cm
   namespace: k8s-program
 data:
   resources_initdb.sql: |

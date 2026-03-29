@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: songs-db-initdb
+  name: songs-initdb-cm
   namespace: k8s-program
 data:
   songs_initdb.sql: |
