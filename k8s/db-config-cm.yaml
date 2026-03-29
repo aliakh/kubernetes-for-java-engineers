@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: db-config
+  name: db-config-cm
   namespace: k8s-program
 data:
   postgres_db: "postgres"

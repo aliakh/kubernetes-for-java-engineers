@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: db-creds
+  name: db-config-scr
   namespace: k8s-program
 type: Opaque
 stringData:

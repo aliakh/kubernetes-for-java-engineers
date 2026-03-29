@@ -52,17 +52,17 @@ spec:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: db-creds
+                  name: db-config-scr
                   key: postgres_user
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-creds
+                  name: db-config-scr
                   key: postgres_password
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
-                  name: db-config
+                  name: db-config-cm
                   key: postgres_db
           volumeMounts:
             - name: resources-data
