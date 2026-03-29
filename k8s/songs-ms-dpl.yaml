@@ -25,37 +25,39 @@ spec:
             - containerPort: 8081
           startupProbe:
             httpGet:
-              port: 8081
               path: /actuator/health
-            failureThreshold: 30
-            timeoutSeconds: 10
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 20
           livenessProbe:
             httpGet:
-              port: 8081
               path: /actuator/health/liveness
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            timeoutSeconds: 10
+              port: 8081
+            initialDelaySeconds: 0
+            periodSeconds: 15
+            timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              port: 8081
               path: /actuator/health/readiness
-            initialDelaySeconds: 30
+              port: 8081
+            initialDelaySeconds: 0
             periodSeconds: 5
-            timeoutSeconds: 2
-            failureThreshold: 10
+            timeoutSeconds: 3
+            failureThreshold: 2
           env:
             - name: SONGS_DB_URL
               valueFrom:
                 configMapKeyRef:
                   name: songs-ms-config-cm
-                  key: songs_db_url
+                  key: SONGS_DB_URL
             - name: SONGS_DB_PORT
               valueFrom:
                 configMapKeyRef:
                   name: songs-ms-config-cm
-                  key: songs_db_port
+                  key: SONGS_DB_PORT
           volumeMounts:
             - name: data
               mountPath: /data

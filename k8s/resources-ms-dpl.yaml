@@ -21,44 +21,46 @@ spec:
             - containerPort: 8080
           startupProbe:
             httpGet:
-              port: 8080
               path: /actuator/health
-            failureThreshold: 30
-            timeoutSeconds: 5
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 20
           livenessProbe:
             httpGet:
-              port: 8080
               path: /actuator/health/liveness
-            initialDelaySeconds: 15
-            periodSeconds: 10
+              port: 8080
+            initialDelaySeconds: 0
+            periodSeconds: 15
+            timeoutSeconds: 5
             failureThreshold: 3
-            timeoutSeconds: 10
           readinessProbe:
             httpGet:
-              port: 8080
               path: /actuator/health/readiness
-            initialDelaySeconds: 30
+              port: 8080
+            initialDelaySeconds: 0
             periodSeconds: 5
-            timeoutSeconds: 2
-            failureThreshold: 10
+            timeoutSeconds: 3
+            failureThreshold: 2
           env:
             - name: RESOURCES_DB_URL
               valueFrom:
                 configMapKeyRef:
                   name: resources-ms-config-cm
-                  key: resources_db_url
+                  key: RESOURCES_DB_URL
             - name: RESOURCES_DB_PORT
               valueFrom:
                 configMapKeyRef:
                   name: resources-ms-config-cm
-                  key: resources_db_port
+                  key: RESOURCES_DB_PORT
             - name: SONGS_MS_URL
               valueFrom:
                 configMapKeyRef:
                   name: resources-ms-config-cm
-                  key: songs_ms_url
+                  key: SONGS_MS_URL
             - name: SONGS_MS_PORT
               valueFrom:
                 configMapKeyRef:
                   name: resources-ms-config-cm
-                  key: songs_ms_port
+                  key: SONGS_MS_PORT

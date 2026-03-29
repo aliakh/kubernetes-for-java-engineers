@@ -4,7 +4,7 @@ metadata:
   name: resources-ms-config-cm
   namespace: k8s-program
 data:
-  resources_db_url: "resources-db-svc"
-  resources_db_port: "5432"
-  songs_ms_url: "songs-ms-svc"
-  songs_ms_port: "8081"
+  RESOURCES_DB_URL: "resources-db-svc"
+  RESOURCES_DB_PORT: "5432"
+  SONGS_MS_URL: "songs-ms-svc"
+  SONGS_MS_PORT: "8081"
