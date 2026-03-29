@@ -4,7 +4,7 @@ metadata:
   name: resources-db-initdb
   namespace: k8s-program
 data:
-  resources_init.sql: |
+  resources_initdb.sql: |
     create table if not exists resources (
         id serial not null,
         blob bytea,
