@@ -5,8 +5,9 @@ metadata:
   namespace: k8s-program
 data:
   resources_initdb.sql: |
-    create table if not exists resources (
-        id serial not null,
-        blob bytea,
-        primary key (id)
+    drop table if exists resources cascade;
+    create table resources (
+      id serial not null,
+      blob bytea,
+      primary key (id)
     );

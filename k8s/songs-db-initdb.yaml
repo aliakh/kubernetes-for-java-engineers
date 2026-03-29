@@ -4,16 +4,18 @@ metadata:
   name: songs-db-initdb
   namespace: k8s-program
 data:
-  songs_init.sql: |
+  songs_initdb.sql: |
+    drop sequence if exists songs_seq;
     create sequence songs_seq start with 1 increment by 50;
+    drop table if exists songs cascade;
     create table songs (
-        id integer not null,
-        resource_id integer not null unique,
-        album varchar(255),
-        artist varchar(255),
-        length varchar(255),
-        name varchar(255),
-        year varchar(255),
-        genre varchar(255),
-        primary key (id)
+      id integer not null,
+      resource_id integer not null unique,
+      album varchar(255),
+      artist varchar(255),
+      length varchar(255),
+      name varchar(255),
+      year varchar(255),
+      genre varchar(255),
+      primary key (id)
     );
