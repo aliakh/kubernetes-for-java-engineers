@@ -4,26 +4,7 @@ metadata:
   name: ms-config
   namespace: k8s-program
 data:
-  resources_db_url: "resources-db-service"
+  resources_db_url: "resources-db-svc"
   resources_db_port: "5432"
-  songs_db_url: "songs-db-service"
-
-  resources_init.sql: |
-    create table resources (
-        id serial not null,
-        blob bytea,
-        primary key (id)
-    );
-  songs_init.sql: |
-    create sequence songs_seq start with 1 increment by 50;
-    create table songs (
-        id integer not null,
-        resource_id integer not null unique,
-        album varchar(255),
-        artist varchar(255),
-        length varchar(255),
-        name varchar(255),
-        year varchar(255),
-        genre varchar(255),
-        primary key (id)
-    );
+  songs_ms_url: "songs-ms-svc"
+  songs_ms_port: "8081"
