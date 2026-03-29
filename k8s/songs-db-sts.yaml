@@ -35,7 +35,7 @@ spec:
           readinessProbe:
             exec:
               command: ["sh", "-c", "pg_isready -U postgres -d postgres"]
-            initialDelaySeconds: 30
+            initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 5
             failureThreshold: 3
