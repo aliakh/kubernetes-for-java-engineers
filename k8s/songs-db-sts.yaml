@@ -51,10 +51,10 @@ spec:
       volumes:
         - name: db-init
           configMap:
-            name: ms-config
+            name: songs-initdb-cm
             items:
-              - key: songs_init.sql
-                path: songs_init.sql
+              - key: songs_initdb.sql
+                path: songs_initdb.sql
           env:
             - name: POSTGRES_USER
               valueFrom:
