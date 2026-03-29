@@ -23,22 +23,24 @@ spec:
           startupProbe:
             exec:
               command: ["sh", "-c", "pg_isready -U postgres -d postgres"]
-            failureThreshold: 30
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 20
           livenessProbe:
             exec:
               command: ["sh", "-c", "pg_isready -U postgres -d postgres"]
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            initialDelaySeconds: 10
+            periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             exec:
               command: ["sh", "-c", "pg_isready -U postgres -d postgres"]
-            initialDelaySeconds: 10
+            initialDelaySeconds: 2
             periodSeconds: 5
-            timeoutSeconds: 5
-            failureThreshold: 3
+            timeoutSeconds: 3
+            failureThreshold: 2
           env:
             - name: POSTGRES_USER
               valueFrom:
