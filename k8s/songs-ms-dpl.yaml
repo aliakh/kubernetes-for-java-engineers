@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: songs-service
-          image: songs-service:1.1
+          image: songs-service:1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
