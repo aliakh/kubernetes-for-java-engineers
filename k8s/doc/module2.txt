@@ -6,9 +6,17 @@ kubectl apply -f k8s/
 # Get all Secrets
 kubectl get secrets -n k8s-program
 
+# Describe the Secret with the database credentials
+kubectl describe secret db-config-scr -n k8s-program
+
 # Get all ConfigMaps
 kubectl get configmaps -n k8s-program
 
+# Describe the ConfigMap with the resource service environment variables
+kubectl describe configmap resources-ms-config-cm -n k8s-program
+
+# Describe the ConfigMap with the databases initialization script
+kubectl describe configmap resources-initdb-cm -n k8s-program
 
 
 # Get all workload objects in the namespace
