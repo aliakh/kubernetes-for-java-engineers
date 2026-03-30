@@ -1,3 +1,40 @@
+Sub-task 1: Secrets and config-maps
+
+Add Secrets object to your k8s manifest to store database username and password.
+Add config maps to store environment variables for application deployments.
+Add sql scripts to init databases (create tables) to config maps.
+Change k8s Deployment and StatefulSet objects to load these secrets and config-maps.
+
+
+Sub-task 2: Liveness and Readiness probes
+
+Add endpoints for health checks at your applications.
+Add startup, liveness and readiness probes for your Deployment objects at k8s manifest.
+Add startup, liveness and readiness probes for your StatefulSet objects at k8s manifest.
+
+
+Sub-task 3: Deployment strategies
+In this module you will add a field to one of your services, and perform Rolling-update deployment.
+
+To Song service add a new field genre (:String). Add corresponding logic so this field will represent genre of a song. This field also should be returned at the responses for both POST and GET operations.
+Build a new docker image of application with changes and push it to the Docker Hub (specify another version of container).
+Add Rolling-update deployment strategy to your deployments at manifest files and apply the  manifest, so the old versions of microservices are deployed and running.
+Set app version of app containers to the new one and apply manifest one more time. Make sure that new changes are deployed.
+
+
+Sub-task 4: Deployment history
+As you deployed a new version of your application, you can see the history of your deployments. Your task is to roll back to previous version of your deployment without changing your manifest files.
+Put in comments the solution of this task.
+
+
+
+
+
+
+
+
+
+
 Get-Content *.yaml | Set-Content merged.txt
 
 kubectl rollout status deployment/songs-ms-dpl -n=k8s-program
