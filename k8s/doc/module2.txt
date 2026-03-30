@@ -1,5 +1,21 @@
 Get-Content *.yaml | Set-Content merged.txt
 
+kubectl rollout status deployment/songs-ms-dpl -n=k8s-program
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
+
+kubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-program
+
+kubectl rollout status deployment/songs-ms-dpl -n=k8s-program
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
+
+kubectl rollout undo deployment/songs-ms-dpl -n k8s-program
+
+kubectl rollout status deployment/songs-ms-dpl -n=k8s-program
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
+
+
+
+
 kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
 kubectl apply -f k8s/songs-ms-dpl.yaml
 kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
@@ -77,8 +93,8 @@ kubectl version
 ./gradlew :songs-service:clean :songs-service:build -x test
 
 # Build Docker images for Rancher Desktop using containerd/nerdctl
-nerdctl -n k8s.io build -t resources-service:1.0 resources-service
-nerdctl -n k8s.io build -t songs-service:1.0 songs-service
+nerdctl -n k8s.io build -t resources-service:1.1 resources-service
+nerdctl -n k8s.io build -t songs-service:1.1 songs-service
 
 # Deploy the Kubernetes manifests
 kubectl apply -f k8s/
