@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resources-db-init-sql
+  namespace: k8s-program
+data:
+  01_resources.sql: |
+    -- Table: resources
+    CREATE TABLE IF NOT EXISTS resources (
+        id SERIAL PRIMARY KEY,
+        blob BYTEA
+    );

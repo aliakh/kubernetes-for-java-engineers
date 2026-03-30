@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resources-config
+  namespace: k8s-program
+data:
+  RESOURCES_MS_NAME: "resources-ms"
+  RESOURCES_MS_PORT: "8080"
+  SONGS_SERVICE_URL: "songs"
+  SONGS_SERVICE_PORT: "8081"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://resources-db:5432/resources"
