@@ -3,6 +3,14 @@ Sub-task 1: Secrets and config-maps
 # Deploy the Kubernetes manifests
 kubectl apply -f k8s/
 
+# Get all Secrets
+kubectl get secrets -n k8s-program
+
+# Get all ConfigMaps
+kubectl get configmaps -n k8s-program
+
+
+
 # Get all workload objects in the namespace
 kubectl get all -n k8s-program
 
