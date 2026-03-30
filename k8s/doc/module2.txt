@@ -1,10 +1,10 @@
 Get-Content *.yaml | Set-Content merged.txt
 
-kubectl rollout history deployment/post-srv -n=demo-k8s
-kubectl apply -f manifests/rolling-update/post-srv-deployment.yaml
-kubectl rollout history deployment/post-srv -n=demo-k8s
-kubectl rollout undo deployment/post-srv -n demo-k8s
-kubectl rollout history deployment/post-srv -n=demo-k8s
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
+kubectl apply -f manifests/rolling-update/songs-ms-dpl-deployment.yaml
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
+kubectl rollout undo deployment/songs-ms-dpl -n k8s-program
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
 
 
 kubectl apply -f songs-ms-deployment.yaml
@@ -19,6 +19,9 @@ kubectl rollout undo ...
 ✔ Verify history again
 Everything matches Kubernetes recommended procedure.
 
+
+kubectl delete statefulset songs-db-sts -n k8s-program
+kubectl delete pvc -n k8s-program -l app=songs-db-sts
 
 
 # Build the microservices
