@@ -3,13 +3,15 @@ kind: Deployment
 metadata:
   name: songs-ms-dpl
   namespace: k8s-program
+  annotations:
+    kubernetes.io/change-cause: "add the genre column to the songs table"
 spec:
   replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: songs-ms-dpl
@@ -20,7 +22,7 @@ spec:
     spec:
       containers:
         - name: songs-service
-          image: songs-service:1.0
+          image: songs-service:1.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
