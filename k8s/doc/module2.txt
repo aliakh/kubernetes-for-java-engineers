@@ -19,14 +19,6 @@ kubectl describe configmap resources-ms-config-cm -n k8s-program
 kubectl describe configmap resources-initdb-cm -n k8s-program
 
 
-# Get all workload objects in the namespace
-kubectl get all -n k8s-program
-
-Add Secrets object to your k8s manifest to store database username and password.
-Add config maps to store environment variables for application deployments.
-Add sql scripts to init databases (create tables) to config maps.
-Change k8s Deployment and StatefulSet objects to load these secrets and config-maps.
-
 
 Sub-task 2: Liveness and Readiness probes
 
