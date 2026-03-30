@@ -1,5 +1,11 @@
 Sub-task 1: Secrets and config-maps
 
+# Deploy the Kubernetes manifests
+kubectl apply -f k8s/
+
+# Get all workload objects in the namespace
+kubectl get all -n k8s-program
+
 Add Secrets object to your k8s manifest to store database username and password.
 Add config maps to store environment variables for application deployments.
 Add sql scripts to init databases (create tables) to config maps.
