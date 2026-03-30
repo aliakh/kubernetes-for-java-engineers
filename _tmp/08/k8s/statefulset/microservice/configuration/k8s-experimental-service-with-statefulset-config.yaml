@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: experimental-service-db-statefulset-config
-  namespace: microservice-with-statefulset-ns
-data:
-  database_name: postgres
-  song_database_url: song-postgres-db-statefulset-service.database-statefulset-ns
-  resource_database_url: resource-postgres-db-statefulset-service.database-statefulset-ns

@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: experimental-service-db-config
-  namespace: microservice-ns
-data:
-  database_name: postgres
-  song_database_url: song-postgres-db-service.database-ns
-  resource_database_url: resources-postgres-db-service.database-ns
