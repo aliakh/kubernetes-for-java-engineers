@@ -1,0 +1,40 @@
+
+📄 Kubernetes Deployment Report
+Sub-task 1: Secrets and ConfigMaps
+All sensitive information such as database credentials was moved into Kubernetes Secrets, and application environment variables were externalized into ConfigMaps.
+SQL initialization scripts required for database creation were stored in ConfigMaps and mounted into the PostgreSQL StatefulSet.
+Commands executed
+Shell# Get all Secretskubectl get secrets -n k8s-program# Describe the Secret containing the database credentialskubectl describe secret db-config-scr -n k8s-program# Get all ConfigMapskubectl get configmaps -n k8s-program# Describe the ConfigMap containing environment variables for the resource servicekubectl describe configmap resources-ms-config-cm -n k8s-programShow more lines
+
+Sub-task 2: Liveness and Readiness Probes
+Startup, Liveness, and Readiness probes were added to all Deployments and StatefulSets to ensure proper startup behavior, container health, and traffic readiness.
+Commands executed
+Shell# Get all Pods and verify that all are running and readykubectl get pods -n k8s-program# Describe a Pod to inspect its state and probe historykubectl describe pod songs-ms-dpl-6fc5667c8-snrpn -n k8s-programShow more lines
+
+Sub-task 3: Deployment Strategies
+A new field genre: String was added to the Song microservice, along with logic to process and return this value in both POST and GET operations.
+After implementing the change, the services were rebuilt, new Docker images (v1.1) were created, and rolling updates were performed.
+Verifying the currently deployed version
+Shellkubectl rollout history deployment/songs-ms-dpl -n=k8s-programkubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-programShow more lines
+Building updated microservices
+Shell./gradlew :resources-service:clean :resources-service:build -x test./gradlew :songs-service:clean :songs-service:build -x testShow more lines
+Building Docker images (version 1.1)
+Shellnerdctl -n k8s.io build -t resources-service:1.1 resources-servicenerdctl -n k8s.io build -t songs-service:1.1 songs-serviceShow more lines
+Applying updated manifests
+Shellkubectl apply -f k8s/songs-ms-dpl.yamlkubectl apply -f k8s/resources-ms-dpl.yamlShow more lines
+Checking the rolling update result
+Shellkubectl rollout history deployment/songs-ms-dpl -n=k8s-programkubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-programShow more lines
+Testing the updated API
+Shell# Upload a new music filecurl.exe -sL -X POST "http://localhost:30080/resources/file" \  -H "Content-Type: multipart/form-data" \  -F "file=@mp3/resource.mp3"# Verify the song contains the 'genre' fieldcurl.exe -sL "http://localhost:30081/songs/1"Show more lines
+
+Sub-task 4: Deployment History
+Kubernetes automatically keeps revision history for Deployments.
+Rolling back does not require modifying any manifest files — the previous ReplicaSet can be restored using the rollback command.
+Verifying version 1.1 before rollback
+Shellkubectl rollout history deployment/songs-ms-dpl -n=k8s-programkubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-programShow more lines
+Rolling back to the previous version
+Shellkubectl rollout undo deployment/songs-ms-dpl -n k8s-programkubectl rollout undo deployment/resources-ms-dpl -n k8s-programShow more lines
+Confirming the rollback to version 1.0
+Shellkubectl rollout history deployment/songs-ms-dpl -n=k8s-programkubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-programShow more lines
+
+✅ Report Completed

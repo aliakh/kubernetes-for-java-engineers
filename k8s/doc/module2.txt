@@ -3,23 +3,28 @@ Sub-task 1: Secrets and config-maps
 # Get all Secrets
 kubectl get secrets -n k8s-program
 
-# Describe the Secret with the database credentials
+# Describe the Secret containing the database credentials
 kubectl describe secret db-config-scr -n k8s-program
 
 # Get all ConfigMaps
 kubectl get configmaps -n k8s-program
 
-# Describe the ConfigMap with the resource service environment variables
+# Describe the ConfigMap containing environment variables for the resource service
 kubectl describe configmap resources-ms-config-cm -n k8s-program
 
 
 
 Sub-task 2: Liveness and Readiness probes
 
-# Get all Pods and check that all are ready
+Probes were added to both the Deployment and the StatefulSet manifests:
+Startup probe - ensures the app starts correctly
+Liveness probe - restarts the container if the app becomes unhealthy
+Readiness probe - ensures the Pod receives traffic only when it's ready
+
+# Get all Pods and verify that all are running and ready
 kubectl get pods -n k8s-program
 
-# Get the Pod description to show its current state and probes history
+# Describe a Pod to inspect its state and probe history
 kubectl describe pod songs-ms-dpl-6fc5667c8-snrpn -n k8s-program
 
 
