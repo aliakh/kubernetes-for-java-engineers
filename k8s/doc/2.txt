@@ -7,3 +7,6 @@ kubectl get all -n k8s-program
 kubectl get pods -n k8s-program
 
 kubectl delete all --all -n k8s-program
+
+kubectl logs -l app=resources-ms-dpl --tail=1000 -n k8s-program
+kubectl logs -l app=songs-ms-dpl --tail=1000 -n k8s-program
