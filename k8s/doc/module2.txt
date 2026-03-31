@@ -27,6 +27,19 @@ Add startup, liveness and readiness probes for your Deployment objects at k8s ma
 Add startup, liveness and readiness probes for your StatefulSet objects at k8s manifest.
 
 
+kubectl get pods -n k8s-program
+
+kubectl get pod <pod> -o yaml
+
+.status.conditions → readiness
+.status.containerStatuses[].state → running/waiting/terminated
+.status.containerStatuses[].restartCount → liveness/startup failures
+
+Probe Type  kubectl signal  What you checks
+tartupProbe restarts, describe logs, Startup probe failed
+livenessProbe   restartCount, describe logs, container restarts
+readinessProbe  READY column, Ready condition, Ready=True/False
+
 Sub-task 3: Deployment strategies
 In this module you will add a field to one of your services, and perform Rolling-update deployment.
 
@@ -96,8 +109,8 @@ kubectl delete pvc -n k8s-program -l app=songs-db-sts
 ./gradlew :songs-service:clean :songs-service:build -x test
 
 # Build Docker images for Rancher Desktop using containerd/nerdctl
-nerdctl -n k8s.io build -t resources-service:1.0 resources-service
-nerdctl -n k8s.io build -t songs-service:1.0 songs-service
+nerdctl -n k8s.io build -t resources-service:1.1 resources-service
+nerdctl -n k8s.io build -t songs-service:1.1 songs-service
 
 # Deploy the Kubernetes manifests
 kubectl apply -f k8s/
