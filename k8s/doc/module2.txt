@@ -43,7 +43,7 @@ kubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-program
 nerdctl -n k8s.io build -t resources-service:1.1 resources-service
 nerdctl -n k8s.io build -t songs-service:1.1 songs-service
 
-# Apply the updated Deployments' manifests
+# Apply the updated Deployment manifests
 kubectl apply -f k8s/songs-ms-dpl.yaml
 kubectl apply -f k8s/resources-ms-dpl.yaml
 
@@ -63,7 +63,7 @@ Sub-task 4: Deployment history
 kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
 kubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-program
 
-# Rollback to the previous version of the Deployments' manifests
+# Rollback to the previous version of the Deployment manifests
 kubectl rollout undo deployment/songs-ms-dpl -n k8s-program
 kubectl rollout undo deployment/resources-ms-dpl -n k8s-program
 
