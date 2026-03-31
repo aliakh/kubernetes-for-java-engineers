@@ -1,8 +1,5 @@
 Sub-task 1: Secrets and config-maps
 
-# Deploy the Kubernetes manifests
-kubectl apply -f k8s/
-
 # Get all Secrets
 kubectl get secrets -n k8s-program
 
@@ -15,32 +12,48 @@ kubectl get configmaps -n k8s-program
 # Describe the ConfigMap with the resource service environment variables
 kubectl describe configmap resources-ms-config-cm -n k8s-program
 
-# Describe the ConfigMap with the databases initialization script
-kubectl describe configmap resources-initdb-cm -n k8s-program
-
 
 
 Sub-task 2: Liveness and Readiness probes
 
-Add endpoints for health checks at your applications.
-Add startup, liveness and readiness probes for your Deployment objects at k8s manifest.
-Add startup, liveness and readiness probes for your StatefulSet objects at k8s manifest.
-
-
+# Get all Pods and check that all are ready
 kubectl get pods -n k8s-program
 
-kubectl get pod <pod> -o yaml
+# Get the Pod description to show its current state and probes history
+kubectl describe pod songs-ms-dpl-6fc5667c8-snrpn -n k8s-program
 
-.status.conditions → readiness
-.status.containerStatuses[].state → running/waiting/terminated
-.status.containerStatuses[].restartCount → liveness/startup failures
 
-Probe Type  kubectl signal  What you checks
-tartupProbe restarts, describe logs, Startup probe failed
-livenessProbe   restartCount, describe logs, container restarts
-readinessProbe  READY column, Ready condition, Ready=True/False
 
 Sub-task 3: Deployment strategies
+
+# Check that version 1.0 of the songs service is running
+kubectl rollout status deployment/songs-ms-dpl -n=k8s-program
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
+kubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-program
+
+# Build the microservices that supports new genre field
+./gradlew :resources-service:clean :resources-service:build -x test
+./gradlew :songs-service:clean :songs-service:build -x test
+
+# Build Docker images with version 1.1
+nerdctl -n k8s.io build -t resources-service:1.1 resources-service
+nerdctl -n k8s.io build -t songs-service:1.1 songs-service
+
+# Apply new changes of the microservices
+kubectl apply -f k8s/songs-ms-dpl.yaml
+kubectl apply -f k8s/resources-ms-dpl.yaml
+
+# Check the new Pods version is applied
+kubectl rollout status deployment/songs-ms-dpl -n=k8s-program
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
+kubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-program
+
+# Check that the microservices supports new genre field
+curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
+curl.exe -sL "http://localhost:30081/songs/1"
+
+
+
 In this module you will add a field to one of your services, and perform Rolling-update deployment.
 
 To Song service add a new field genre (:String). Add corresponding logic so this field will represent genre of a song. This field also should be returned at the responses for both POST and GET operations.
@@ -50,6 +63,22 @@ Set app version of app containers to the new one and apply manifest one more tim
 
 
 Sub-task 4: Deployment history
+
+# Check that version 1.1 of the songs service is running
+kubectl rollout status deployment/songs-ms-dpl -n=k8s-program
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
+kubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-program
+
+# Rollback to the previous version
+kubectl rollout undo deployment/songs-ms-dpl -n k8s-program
+kubectl rollout undo deployment/resources-ms-dpl -n k8s-program
+
+# Check that version 1.0 of the songs service is running
+kubectl rollout status deployment/songs-ms-dpl -n=k8s-program
+kubectl rollout history deployment/songs-ms-dpl -n=k8s-program
+kubectl describe pod songs-ms-dpl-6b4f64459b-fs8mm -n k8s-program
+
+
 As you deployed a new version of your application, you can see the history of your deployments. Your task is to roll back to previous version of your deployment without changing your manifest files.
 Put in comments the solution of this task.
 
