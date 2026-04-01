@@ -4,7 +4,7 @@ metadata:
   name: songs-ms-dpl
   namespace: k8s-program
   annotations:
-    kubernetes.io/change-cause: "initial changes"
+    kubernetes.io/change-cause: "add the genre column to the songs table"
 spec:
   replicas: 2
   strategy:
@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: songs-service
-          image: songs-service:1.0
+          image: songs-service:1.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081

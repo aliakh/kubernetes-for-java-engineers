@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: resources-service
-          image: resources-service:1.0
+          image: resources-service:1.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
