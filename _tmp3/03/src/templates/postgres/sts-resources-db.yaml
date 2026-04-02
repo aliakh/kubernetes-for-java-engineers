@@ -1,0 +1,98 @@
+{{- if .Values.postgres.resourcesDb.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: resources-db
+  namespace: {{ .Values.global.namespace | quote }}
+  labels:
+    app: resources-db
+    {{- include "microservices-intro-helm.commonLabels" . | nindent 4 }}
+spec:
+  serviceName: resources-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resources-db
+  template:
+    metadata:
+      labels:
+        app: resources-db
+        {{- include "microservices-intro-helm.commonLabels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.resourcesDb.image | quote }}
+          ports:
+            - containerPort: 5432
+              name: postgres
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - >
+                  pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1 -p 5432
+            failureThreshold: 30
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - >
+                  pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1 -p 5432
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1.5Gi"
+              ephemeral-storage: "300Mi"
+            limits:
+              cpu: "2"
+              memory: "3Gi"
+              ephemeral-storage: "1Gi"
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-db-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: resources-db-credentials
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: resources-db-credentials
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: resources-db-data
+              mountPath: /var/lib/postgresql/data
+            - name: resources-db-init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+      volumes:
+        - name: resources-db-init
+          configMap:
+            name: resources-db-init-sql
+  volumeClaimTemplates:
+    - metadata:
+        name: resources-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: hostpath
+        resources:
+          requests:
+            storage: 1Gi
+{{- end }}

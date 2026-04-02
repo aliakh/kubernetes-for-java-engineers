@@ -1,0 +1,17 @@
+{{ $root := . }}
+{{ range $key, $app := .Values.apps }}
+{{ if eq $key "songs" }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-pvc" $key }}
+  namespace: {{ required "namespace is required!" $root.Values.namespace }}
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+{{ end }}
+{{ end }}

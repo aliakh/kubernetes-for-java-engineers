@@ -1,0 +1,17 @@
+{{- if .Values.postgres.resourcesDb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: resources-db
+  namespace: {{ .Values.global.namespace | quote }}
+  labels:
+    app: resources-db
+    {{- include "microservices-intro-helm.commonLabels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: resources-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+{{- end }}

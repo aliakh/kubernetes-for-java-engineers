@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: songs-db-config
+  namespace: {{ .Values.global.namespace | quote }}
+  labels:
+    {{- include "microservices-intro-helm.commonLabels" . | nindent 4 }}
+data:
+  POSTGRES_DB: "songs"
