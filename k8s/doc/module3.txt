@@ -1,3 +1,5 @@
+helm version
+
 helm create helm
 
 helm template helm-release-1 ./helm > manifests.yaml
