@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   serviceName: resources-db-svc
-  replicas: 1
+  replicas: {{ .Values.resources_db_svc.replicas }}
   selector:
     matchLabels:
       app: resources-db-sts

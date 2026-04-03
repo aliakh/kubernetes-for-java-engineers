@@ -6,7 +6,7 @@ metadata:
   annotations:
     kubernetes.io/change-cause: "add the genre column to the songs table"
 spec:
-  replicas: 2
+  replicas: {{ .Values.songs_ms_dpl.replicas }}
   strategy:
     type: RollingUpdate
     rollingUpdate:

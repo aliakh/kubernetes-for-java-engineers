@@ -4,7 +4,7 @@ metadata:
   name: resources-ms-dpl
   namespace: {{ .Values.namespace }}
 spec:
-  replicas: 2
+  replicas: {{ .Values.resources_ms_dpl.replicas }}
   selector:
     matchLabels:
       app: resources-ms-dpl

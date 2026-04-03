@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   serviceName: songs-db-svc
-  replicas: 1
+  replicas: {{ .Values.songs_db_svc.replicas }}
   selector:
     matchLabels:
       app: songs-db-sts
