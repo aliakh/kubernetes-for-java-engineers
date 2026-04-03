@@ -4,12 +4,22 @@ helm create helm
 
 helm template release1 ./helm > manifests.yaml
 
-helm install release1 ./helm
+kubectl delete namespace k8s-program
+kubectl delete storageclass hostpath
+kubectl delete pv songs-pv
 
-get deploy -n k8s-program
-get pods -n k8s-program
-helm upgrade release1 ./helm --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
-get deploy -n k8s-program
-get pods -n k8s-program
+helm install helm-release ./helm --namespace k8s-program --create-namespace
+
+kubectl get all -n k8s-program
+kubectl get deploy -n k8s-program
+kubectl get pods -n k8s-program
+curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
+curl.exe -sL "http://localhost:30081/songs/1"
+
+helm upgrade helm-release ./helm --namespace k8s-program --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
+kubectl get deploy -n k8s-program
+kubectl get pods -n k8s-program
 
 kubectl describe configmap resources-ms-config-cm -n k8s-program
+
+helm uninstall helm-release --namespace k8s-program
