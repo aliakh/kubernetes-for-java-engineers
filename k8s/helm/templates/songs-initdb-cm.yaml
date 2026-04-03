@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: songs-initdb-cm
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
 data:
   songs_initdb.sql: |
     drop sequence if exists songs_seq;

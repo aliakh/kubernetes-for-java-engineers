@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: resources-ms-config-cm
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
 data:
   RESOURCES_DB_URL: "resources-db-svc"
   RESOURCES_DB_PORT: "5432"

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: resources-db-sts
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
 spec:
   serviceName: resources-db-svc
   replicas: 1

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: songs-db-sts
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
 spec:
   serviceName: songs-db-svc
   replicas: 1

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: songs-ms-dpl
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
   annotations:
     kubernetes.io/change-cause: "add the genre column to the songs table"
 spec:

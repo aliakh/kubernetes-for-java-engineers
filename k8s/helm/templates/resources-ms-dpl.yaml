@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: resources-ms-dpl
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 2
   selector:
