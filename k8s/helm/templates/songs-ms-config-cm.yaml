@@ -3,6 +3,7 @@ kind: ConfigMap
 metadata:
   name: songs-ms-config-cm
   namespace: {{ .Values.namespace }}
+  labels: {{ include "config_map.labels" . | nindent 4 }}
 data:
   SONGS_DB_URL: "songs-db-svc"
   SONGS_DB_PORT: "5432"
