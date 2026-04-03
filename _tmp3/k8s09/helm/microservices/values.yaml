@@ -1,0 +1,101 @@
+namespace: microservices
+
+configs:
+  app:
+    name: app-config
+  db:
+    name: db-config
+
+secrets:
+  db:
+    name: db-creds
+
+apps:
+  songs:
+    db:
+      imageName: postgres
+      imageTag: 13.20-alpine3.21
+      replicas: 1
+      servicePort: 5432
+      containerPort: 5432
+      startup:
+        failureThreshold: 30
+        periodSeconds: 10
+      liveness:
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 3
+      readiness:
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        timeoutSeconds: 5
+        failureThreshold: 3
+    service:
+      port: 80
+      nodePort: 30001
+    deployment:
+      imageName: songs-image
+      imageTag: 1.0.0
+      replicas: 2
+      port: 8081
+      startup:
+        path: /actuator/health
+        failureThreshold: 30
+        timeoutSeconds: 10
+      liveness:
+        path: /actuator/health/liveness
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 10
+      readiness:
+        path: /actuator/health/readiness
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 10
+  resources:
+    db:
+      imageName: postgres
+      imageTag: 13.20-alpine3.21
+      replicas: 1
+      servicePort: 5432
+      containerPort: 5432
+      startup:
+        failureThreshold: 30
+        periodSeconds: 10
+      liveness:
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 3
+      readiness:
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        timeoutSeconds: 5
+        failureThreshold: 3
+    service:
+      port: 80
+      nodePort: 30000
+    deployment:
+      imageName: resources-image
+      imageTag: 1.0.0
+      replicas: 2
+      port: 8080
+      startup:
+        path: /actuator/health
+        failureThreshold: 30
+        timeoutSeconds: 10
+      liveness:
+        path: /actuator/health/liveness
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 10
+      readiness:
+        path: /actuator/health/readiness
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 10

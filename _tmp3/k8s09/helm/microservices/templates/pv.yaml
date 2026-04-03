@@ -1,0 +1,17 @@
+{{ range $key, $app := .Values.apps }}
+{{ if eq $key "songs" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ printf "%s-pv" $key }}
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual
+  hostPath:
+    path: /mnt/data
+{{ end }}
+{{ end }}

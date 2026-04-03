@@ -1,0 +1,89 @@
+{{- if .Values.songsService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs
+  namespace: {{ .Values.global.namespace | quote }}
+  labels:
+    app: songs
+    {{- include "microservices-intro-helm.commonLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.songsService.replicaCount }}
+  selector:
+    matchLabels:
+      app: songs
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  template:
+    metadata:
+      labels:
+        app: songs
+        {{- include "microservices-intro-helm.commonLabels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: songs
+          image: {{ .Values.songsService.image | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            failureThreshold: 30
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+              ephemeral-storage: "300Mi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+              ephemeral-storage: "1Gi"
+          env:
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: songs-db-credentials
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: songs-db-credentials
+                  key: POSTGRES_PASSWORD
+          envFrom:
+            - configMapRef: { name: app-common }
+            - configMapRef: { name: songs-config }
+          volumeMounts:
+            - name: songs-volume
+              mountPath: /data/songs
+      volumes:
+        - name: songs-volume
+          persistentVolumeClaim:
+            claimName: songs-pvc
+{{- end }}
