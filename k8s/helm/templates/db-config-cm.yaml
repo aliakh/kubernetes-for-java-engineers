@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: db-config-cm
   namespace: {{ .Values.namespace }}
-  labels: {{ include "configmap.labels" . | nindent 4 }}
+  labels: {{ include "config_map.labels" . | nindent 4 }}
 data:
   POSTGRES_DB: "postgres"
