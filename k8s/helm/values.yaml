@@ -1,1 +1,1 @@
-namespace: {{ .Values.namespace }}
+namespace: k8s-program
