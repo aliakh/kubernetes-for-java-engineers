@@ -19,7 +19,7 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
-          {{- include "probes.actuator" 8080 | nindent 10 }}
+          {{- include "ms.probes" 8080 | nindent 10 }}
           env:
             - name: RESOURCES_DB_URL
               valueFrom:
