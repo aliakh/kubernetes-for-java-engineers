@@ -2,4 +2,8 @@ helm version
 
 helm create helm
 
-helm template helm-release-1 ./helm > manifests.yaml
+helm template release1 ./helm > manifests.yaml
+
+helm install release1 ./helm
+
+helm upgrade release1 ./helm --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
