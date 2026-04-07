@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resources-ms-config-cm
+  namespace: k8s-program
+data:
+  RESOURCES_DB_URL: "resources-db-svc"
+  RESOURCES_DB_PORT: "5432"
+  SONGS_MS_URL: "songs-ms-svc"
+  SONGS_MS_PORT: "8081"

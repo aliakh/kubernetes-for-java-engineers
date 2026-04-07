@@ -15,12 +15,52 @@ spec:
     spec:
       containers:
         - name: resources-service
-          image: resources-service:1.0
+          image: resources-service:1.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
           env:
-            - { name: RESOURCES_DB_URL,  value: "resources-db-svc" }
-            - { name: RESOURCES_DB_PORT, value: "5432" }
-            - { name: SONGS_MS_URL,      value: "songs-ms-svc" }
-            - { name: SONGS_MS_PORT,     value: "8081" }
+            - name: RESOURCES_DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-ms-config-cm
+                  key: RESOURCES_DB_URL
+            - name: RESOURCES_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-ms-config-cm
+                  key: RESOURCES_DB_PORT
+            - name: SONGS_MS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-ms-config-cm
+                  key: SONGS_MS_URL
+            - name: SONGS_MS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: resources-ms-config-cm
+                  key: SONGS_MS_PORT

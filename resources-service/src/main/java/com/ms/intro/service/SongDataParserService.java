@@ -26,6 +26,7 @@ public class SongDataParserService {
         songDataDto.setAlbum(StringUtils.defaultString(songData.get("xmpDM:album")));
         songDataDto.setLength(StringUtils.defaultString(songData.get("xmpDM:duration")));
         songDataDto.setYear(StringUtils.defaultString(songData.get("xmpDM:releaseDate")));
+        songDataDto.setGenre(StringUtils.defaultString(songData.get("xmpDM:genre")));
         return songDataDto;
     }
 
