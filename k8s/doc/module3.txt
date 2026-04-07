@@ -11,8 +11,6 @@ helm template release1 ./helm > manifests.yaml
 helm install release1 ./helm --namespace k8s-program --create-namespace
 
 # Check that by default each microservice has 2 Pods
-kubectl get all -n k8s-program
-kubectl get deploy -n k8s-program
 kubectl get pods -n k8s-program
 
 # Check that the application is up and running
@@ -23,8 +21,11 @@ curl.exe -sL "http://localhost:30081/songs/1"
 helm upgrade release1 ./helm --namespace k8s-program --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
 
 # Check that the namespace has changed and each microservice has 3 Pods
-kubectl get deploy -n k8s-program
 kubectl get pods -n k8s-program
+
+# Check that the application is up and running
+curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
+curl.exe -sL "http://localhost:30081/songs/2"
 
 # Check that a ConfigMap has labels: currentDate from the Helm generator config_map.labels from file _helpers.tpl and version from file Chart.yaml
 kubectl describe configmap resources-ms-config-cm -n k8s-program
