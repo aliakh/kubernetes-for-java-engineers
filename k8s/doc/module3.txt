@@ -7,7 +7,7 @@ helm create helm
 # Render the chart locally into Kubernetes YAML (no resources are created in the cluster) and redirect output to a file for review
 helm template release1 ./helm > manifests.yaml
 
-# Install the chart as a Helm release named "release1" into a Kubernetes cluster with namespace "k8s-program"
+# Install the chart as a Helm release named "release1" into the Kubernetes cluster in namespace "k8s-program"
 helm install release1 ./helm --namespace k8s-program --create-namespace
 
 # Check that by default each microservice has 2 Pods
@@ -18,14 +18,26 @@ curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: m
 curl.exe -sL "http://localhost:30081/songs/1"
 
 # Upgrade the chart into the Kubernetes cluster to set namespace and replica-count to non-default values
+
+# Deploy the chart with non-default values into namespace "k8s-program2"
+# IMPORTANT (namespace behavior):
+# - Helm releases are namespaced.
+# - This command does NOT "move" the existing release from k8s-program to k8s-program2.
+# - Instead, it upgrades release1 in k8s-program2 if it exists; otherwise, it installs a NEW release named release1 in k8s-program2.
+# - The original release in k8s-program remains unchanged unless you uninstall it explicitly.
+
 helm upgrade --install release1 ./helm --namespace k8s-program2 --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
 
-# Check that the namespace has changed and each microservice has 3 Pods
-kubectl get pods -n k8s-program2
+# Check that after upgrade each microservice has 3 Pods
+kubectl get pods -n k8s-program
 
-# Check that the application is working
+# Check that the application is still working
 curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
 curl.exe -sL "http://localhost:30081/songs/2"
 
 # Check that a ConfigMap has labels: currentDate from the Helm generator config_map.labels from file _helpers.tpl and version from file Chart.yaml
+
+# Verify ConfigMap labels:
+# - currentDate should be produced by your helper template (e.g., using Helm's time functions at render time)
+# - version should come from Chart.yaml (available as .Chart.Version in templates)
 kubectl describe configmap resources-ms-config-cm -n k8s-program2
