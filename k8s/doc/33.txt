@@ -1,0 +1,39 @@
+# Verify Helm is installed and can talk to the Helm client (prints Helm client version; does not require cluster access)
+helm version
+
+# Scaffold a new Helm chart named "helm" (creates Chart.yaml, values.yaml, templates/, etc.)
+helm create helm
+
+# Render the chart locally into plain Kubernetes YAML (no resources are created in the cluster); redirect output to manifests.yaml for review
+helm template release1 ./helm > manifests.yaml
+
+# Install the chart into the cluster as a Helm release named "helm-release" into namespace "k8s-program";
+# --create-namespace creates the namespace if it does not exist
+helm install helm-release ./helm --namespace k8s-program --create-namespace
+
+# Verify the created Kubernetes resources in namespace k8s-program;
+# confirm the number of Pods matches the default replica count from values.yaml (e.g., 2 if you set replicas=2 there)
+kubectl get all -n k8s-program
+kubectl get deploy -n k8s-program
+kubectl get pods -n k8s-program
+
+# Smoke-test the application endpoints (assumes your Services are exposed on localhost:30080 and localhost:30081, e.g., via NodePort/port-forward)
+# 1) Upload an MP3 file to the resources service
+curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
+# 2) Fetch song with id=1 from the songs service
+curl.exe -sL "http://localhost:30081/songs/1"
+
+# Apply new Helm values via upgrade:
+# NOTE: Helm releases are namespaced. Changing --namespace here does NOT "move" an existing release to a new namespace.
+# This command will fail unless a release named "helm-release" already exists in namespace k8s-program2.
+# To deploy into a new namespace, you typically run a new "helm install" (or "helm upgrade --install") targeting that namespace.
+helm upgrade helm-release ./helm --namespace k8s-program2 --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
+
+# Verify resources in namespace k8s-program2 (if the upgrade/install actually occurred there) and confirm each microservice now has 3 replicas/Pods
+kubectl get deploy -n k8s-program2
+kubectl get pods -n k8s-program2
+
+# Verify ConfigMap labels:
+# - currentDate label should come from your helper template (commonly using Helm's time functions like now/date)
+# - version label should come from Chart.yaml (available in templates as .Chart.Version)
+kubectl describe configmap resources-ms-config-cm -n k8s-program2
