@@ -3,4 +3,5 @@ kubectl delete namespace k8s-program
 kubectl delete storageclass hostpath
 kubectl delete pv songs-pv
 
-helm uninstall helm-release --namespace k8s-program
+helm uninstall release1 --namespace k8s-program
+helm uninstall release1 --namespace k8s-program2
