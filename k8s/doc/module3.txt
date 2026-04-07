@@ -1,31 +1,31 @@
-# Install Helm
+# Verify that Helm is installed
 helm version
 
-# Create a Helm chart
+# Scaffold a new Helm chart named "helm"
 helm create helm
 
-# Render the Helm chart into Kubernetes manifests to verify the final YAML (?) that Helm would apply
+# Render the chart locally into Kubernetes YAML (no resources are created in the cluster) and redirect output to a file for review
 helm template release1 ./helm > manifests.yaml
 
-# Installs the Helm chart from the local ./helm directory into a Kubernetes cluster, creating a release named helm-release
+# Install the chart as a Helm release named "release1" into a Kubernetes cluster with namespace "k8s-program"
 helm install release1 ./helm --namespace k8s-program --create-namespace
 
 # Check that by default each microservice has 2 Pods
 kubectl get pods -n k8s-program
 
-# Check that the application is up and running
+# Check that the application is working
 curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
 curl.exe -sL "http://localhost:30081/songs/1"
 
-# Upgrade the Helm chart from the local ./helm directory into a Kubernetes cluster to set namespace and replica-count to non-default values
-helm upgrade release1 ./helm --namespace k8s-program --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
+# Upgrade the chart into the Kubernetes cluster to set namespace and replica-count to non-default values
+helm upgrade --install release1 ./helm --namespace k8s-program2 --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
 
 # Check that the namespace has changed and each microservice has 3 Pods
-kubectl get pods -n k8s-program
+kubectl get pods -n k8s-program2
 
-# Check that the application is up and running
+# Check that the application is working
 curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
 curl.exe -sL "http://localhost:30081/songs/2"
 
 # Check that a ConfigMap has labels: currentDate from the Helm generator config_map.labels from file _helpers.tpl and version from file Chart.yaml
-kubectl describe configmap resources-ms-config-cm -n k8s-program
+kubectl describe configmap resources-ms-config-cm -n k8s-program2
