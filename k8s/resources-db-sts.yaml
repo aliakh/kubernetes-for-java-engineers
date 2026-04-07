@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: resources-db-sts
+  namespace: k8s-program
+spec:
+  serviceName: resources-db-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resources-db-sts
+  template:
+    metadata:
+      labels:
+        app: resources-db-sts
+    spec:
+      containers:
+        - name: resources-db
+          image: postgres:15
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - { name: POSTGRES_USER,     value: "postgres" }
+            - { name: POSTGRES_PASSWORD, value: "postgres" }
+            - { name: POSTGRES_DB,       value: "postgres" }
+          volumeMounts:
+            - name: resources-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: resources-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: hostpath
+        resources:
+          requests:
+            storage: 300Mi
