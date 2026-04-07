@@ -17,11 +17,12 @@ kubectl get pods -n k8s-program
 curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
 curl.exe -sL "http://localhost:30081/songs/1"
 
-# Upgrade the chart into the Kubernetes cluster to set replica-count to non-default values
+# Upgrade the release in the Kubernetes cluster to set replica-count to non-default values.
 # Important:
-# Helm releases are namespaced; --namespace selects the namespace where Helm looks for the release record.
-# If we try to set namespace to a new value (e.g. "k8s-program2"), then the existing release will not be moved from k8s-program to k8s-program2.
-# Instead, it upgrades release1 in k8s-program2.
+# Helm releases are namespaced, "--namespace k8s-program" selects the namespace where Helm looks for the release record.
+# Changing --namespace does not move an existing release from k8s-program to another namespace (e.g., k8s-program2).
+# If you run "helm upgrade" with --namespace k8s-program2, Helm will attempt to upgrade release1 in k8s-program2:
+# it will succeed only if release1 already exists in k8s-program2; otherwise, it will fail (because this command does not include "--install").
 # The original release in k8s-program remains unchanged unless you upgrade or uninstall it explicitly.
 helm upgrade release1 ./helm --namespace k8s-program --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
 
