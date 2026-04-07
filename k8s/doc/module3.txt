@@ -23,6 +23,14 @@ curl.exe -sL "http://localhost:30081/songs/1"
 # Instead, it upgrades release1 in k8s-program2 if it exists; otherwise, it installs a new release named release1 in k8s-program2.
 # The original release in k8s-program remains unchanged unless you uninstall it explicitly.
 helm upgrade --install release1 ./helm --namespace k8s-program --set resources_ms_dpl.replicas=3 --set songs_ms_dpl.replicas=3
+# Important (namespace behavior):
+# - Helm releases are namespaced; --namespace selects the namespace where Helm looks for the release record.
+# - A release cannot be "moved" to another namespace by changing --namespace.
+# - If you run this command with a different namespace (e.g., k8s-program2):
+#   - Helm will upgrade release1 in k8s-program2 if it already exists there;
+#   - otherwise, with --install, Helm will create a NEW release named release1 in k8s-program2.
+# - The original release1 in k8s-program remains unchanged unless you upgrade/uninstall it explicitly.
+
 
 # Check that after upgrade each microservice has 3 Pods
 kubectl get pods -n k8s-program
@@ -31,9 +39,32 @@ kubectl get pods -n k8s-program
 curl.exe -sL -X POST "http://localhost:30080/resources/file" -H "Content-Type: multipart/form-data" -F "file=@mp3/resource.mp3"
 curl.exe -sL "http://localhost:30081/songs/2"
 
-# Check that a ConfigMap has labels: currentDate from the Helm generator config_map.labels from file _helpers.tpl and version from file Chart.yaml
+# Check that a ConfigMap has labels: currentDate produced by the helper template _helpers.tpl, and version from file Chart.yaml
+kubectl describe configmap resources-ms-config-cm -n k8s-program2
 
 # Verify ConfigMap labels:
 # - currentDate should be produced by your helper template (e.g., using Helm's time functions at render time)
 # - version should come from Chart.yaml (available as .Chart.Version in templates)
 kubectl describe configmap resources-ms-config-cm -n k8s-program2
+
+
+Your facts are mostly correct, but the comment block can be tightened to be precise about what Helm actually does during upgrade --install, and to avoid a small ambiguity:
+
+
+Helm releases are namespaced.
+--namespace tells Helm where to look for the release record and where to create/update the release record.
+
+
+Helm will not “move” a release to another namespace.
+If you run the same release name with a different --namespace, Helm treats it as a different release scope.
+
+
+upgrade --install behavior is:
+
+If a release named release1 exists in the specified namespace, Helm performs an upgrade there.
+If it does not exist in that namespace, Helm performs an install there (creating a new release record), even if a release named release1 exists in some other namespace.
+
+
+
+Important subtlety about resources:
+Even if you install/upgrade in a namespace, a template can still force metadata.namespace to something else. Best practice is to avoid hardcoding metadata.namespace and rely on .Release.Namespace. But Helm will apply whatever the manifest says.
