@@ -25,4 +25,6 @@ public class SongDataDto {
     @NotNull Integer resourceId;
 
     String year;
+
+    String genre;
 }
