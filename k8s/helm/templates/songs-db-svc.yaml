@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: resources-db-svc
-  namespace: k8s-program
+  name: songs-db-svc
+  namespace: {{ .Values.namespace }}
 spec:
   clusterIP: None
   selector:
-    app: resources-db-sts
+    app: songs-db-sts
   ports:
     - port: 5432
       targetPort: 5432
