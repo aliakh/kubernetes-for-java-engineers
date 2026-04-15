@@ -1,0 +1,13 @@
+namespace: k8s-program
+
+resources_ms_dpl:
+  replicas: 2
+
+songs_ms_dpl:
+  replicas: 2
+
+resources_db_svc:
+  replicas: 1
+
+songs_db_svc:
+  replicas: 1

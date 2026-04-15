@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: songs-ms-dpl
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
   annotations:
     kubernetes.io/change-cause: "add the genre column to the songs table"
 spec:
-  replicas: 2
+  replicas: {{ .Values.songs_ms_dpl.replicas }}
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -26,30 +26,7 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
-          startupProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8081
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 60
-          livenessProbe:
-            httpGet:
-              path: /actuator/health/liveness
-              port: 8081
-            initialDelaySeconds: 20
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 5
-          readinessProbe:
-            httpGet:
-              path: /actuator/health/readiness
-              port: 8081
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 5
+          {{- include "ms.probes" 8081 | nindent 10 }}
           env:
             - name: SONGS_DB_URL
               valueFrom:

@@ -2,7 +2,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: resources-initdb-cm
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
+  labels: {{ include "config_map.labels" . | nindent 4 }}
 data:
   resources_initdb.sql: |
     drop table if exists resources cascade;
