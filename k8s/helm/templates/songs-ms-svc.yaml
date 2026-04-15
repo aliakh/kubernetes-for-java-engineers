@@ -4,10 +4,9 @@ metadata:
   name: songs-ms-svc
   namespace: {{ .Values.namespace }}
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: songs-ms-dpl
   ports:
     - port: 8081
       targetPort: 8081
-      nodePort: 30081

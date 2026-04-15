@@ -4,10 +4,9 @@ metadata:
   name: resources-ms-svc
   namespace: {{ .Values.namespace }}
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: resources-ms-dpl
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 30080
